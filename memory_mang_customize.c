@@ -1,15 +1,25 @@
 #include<stdio.h>
+#define BUFFER_SIZE 3
 char *ptr[3];
 char b3[100];
 char  b1[100];
 char  b2[100];
 int f[10];
 int i=0;
-
+char *p1, *p2,*p3,*p4,*p5=NULL;
+void initialization()
+{
+		ptr[0]=b1;
+	ptr[1]=b2;
+	ptr[2]=b3;
+	int k;
+	for (k=0;k<BUFFER_SIZE;k++)
+		f[k]=0;
+}
 void * my_malloc(int size)
 {
 	int k;
-	for(k=0;k<3;k++)
+	for(k=0;k<BUFFER_SIZE;k++)
 	{
 		if((f[k]==0) && (size <=100))
 		{
@@ -25,8 +35,7 @@ void * my_malloc(int size)
 }
 void my_free(void *t)
 {
-	i=0;
-	while(i<3)
+	for(i=0;i<BUFFER_SIZE;i++)
 	{
 		if(t==ptr[i])
 		{
@@ -36,52 +45,33 @@ void my_free(void *t)
 				return;
 	 	    }
      	}
-		i=i+1;
 	}
-	i=0;
+
 }
 void who_is_free()
 {
-	 i=0;
-	while(i<3)
-	{
+	 for(i=0;i<BUFFER_SIZE;i++)
+	 {
 		if(f[i]==0)
 			printf(" block%d is free \n",(i+1));
 		else
 			printf(" block%d is allocated \n",(i+1));
-		i=i+1;
 	}
 	printf("\n");
-	i=0;
 }
-void test2()
+void test1()
 {
-	char *p1, *p2,*p3,*p4,*p5;
-	p1 = p2 = p3 = p4 = NULL;
-	ptr[0]=b1;
-	ptr[1]=b2;
-	ptr[2]=b3;
-	int k;
-	for (k=0;k<10;k++)
-		f[k]=0;
+	initialization();
 	who_is_free();
 	p1=my_malloc(100);
-	i=i+1;
 	p2=my_malloc(100);
-	i=i+1;
 	p3=my_malloc(100);
-	i=i+1;
 	who_is_free();
 	my_free(p2);
-	p2=NULL;
 	who_is_free();
 	p4=my_malloc(100);
 	who_is_free();
-	my_free(p2);
-	p2=NULL;
-	who_is_free();
 	my_free(p1);
-	p1=NULL;
 	who_is_free();
 	p1=my_malloc(120);
 	p2=my_malloc(100);
@@ -91,5 +81,5 @@ void test2()
 
 int main()
 {
-	test2();
+	test1();
 }
