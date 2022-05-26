@@ -155,16 +155,16 @@ void my_free(void *t)
 void who_is_free()
 {
 	struct node *p;
-	int j,bytes=128;
+	int i,j,bytes=128;
 	char *root[2];
 	root[0]=(char *)root1;
 	root[1]=(char *)root2;
 	for(j=0;j<2;j++)
 	{
+		i=1;
 		p=(struct node *)root[j];
 	while(p!=NULL)
 	{
-		int i=1;
 		if(p->flag==0)
 			printf("block%d is free in %d buffer \n",i,bytes);
 		else
@@ -185,10 +185,8 @@ void test1()
 	a3=my_malloc(130);
 	a4=my_malloc(156);
 	who_is_free();
-	//return;
 	my_free(a2);
 	who_is_free();
-	return;
 	a4=my_malloc(100);
 	who_is_free();
 	my_free(a1);
