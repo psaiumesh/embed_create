@@ -22,65 +22,57 @@ struct node
 	struct node *link;
 };
 
-struct node *root[5];
-void append(void)
+struct node *HL[5];
+
+int get_memory_requirements()
 {
-	struct node a;
-	//printf("buff size is :%ld\n",sizeof(a.link));
-	//printf("%ld\n",sizeof(req));
-	//printf("%ld\n",sizeof(struct node));
-
-	int i = 0,j,total_buffer_size=0;
-	void *p;
-	int *q,x;
-	struct node *ptr,*ptr1;
-
+	int total_buffer_size = 0;
+	int i = 0;
 	for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
 		total_buffer_size = total_buffer_size + (req[i].size * req[i].count);
+	return total_buffer_size;
+}
 
-	//printf("%d\n",total_buffer_size);
-	//return;
-	mem_pool = (struct node *)malloc(total_buffer_size);
-	printf("%p\n",p);
+int add_node_to_free_pool(struct node *p)
+{
+}
+
+void * init_pool_by_size(char *mem_pool, int size, int count)
+{
+	char *p = mem_pool;
+	struct node *np;
+	printf("%d.%s-%s ->size :%d, count :%d\n", __LINE__, __FILE__, __FUNCTION__, size, count);
+
+	for (i = 0; i < count; i++)
+	{
+		np = p;
+		np->flag = 0;
+		np->size = size;
+		np->buffer = p + sizeof(struct node);
+		np->link = NULL;
+
+		add_node_to_free_pool(np)
+		
+		p = p + (sizeof(struct node) + size);
+	}
+	return (void *)p;
+}
+
+void init_free_pool(void)
+{
+	int mem_size = 0;
+	void *mem_chunk, *mc;
+
+	mem_size = get_memory_requirements();
+	printf("%d.%s-%s ->mem_size :%d\n", __LINE__, __FILE__, __FUNCTION__, mem_size);
+
+	mem_chunk = (struct node *)malloc(total_buffer_size);
+
+	mc = mem_chunk;
 	for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
 	{
-		for (j = 0; j < req[i].count; j++)
-		{
-			q=(int *)p;
-			printf("%p\n",q);
-			//printf("hello\n");
-			p->flag=0;
-			p->size=req[i].size;
-			x=sizeof(struct node );
-
-			printf("%ld\n",sizeof(struct node));
-			p->buff = q + x;
-			//return;
-			printf("%p\n",p->buff);
-			//printf("%d\n",(p->buff)- p);
-			return;
-			p->link=NULL;
-			if(root[i]==NULL)
-				root[i]=p;
-			else
-			{
-				printf("hai \n");
-
-				ptr1=root[i];
-				ptr=root[i]->link;
-				while( ptr!=NULL)
-				{
-					ptr1=ptr;
-					ptr=ptr->link;
-				}
-				ptr1->link=p;
-			}
-			p=p+sizeof(struct node) + req[i].size;
-		}
-		printf("j is %d\n",j);
-		printf("i is %d\n",i);
+		mc = init_pool_by_size(mc, req[i].size, req[i].count);
 	}
-	printf("i is %d\n",i);
 }
 
 void display()
@@ -102,12 +94,13 @@ void display()
 
 int main()
 {
+	init_free_pool();
 	//initialization();
 	//int k;
 	//for (k=0;k<10;k++)
-	append();
+	//append();
 	//test1();
-	display();
+	//display();
 }
 
 
