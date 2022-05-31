@@ -24,33 +24,38 @@ struct node
 struct node *root[5];
 void append(void)
 {
-	printf("%ld\n",sizeof(struct mem_req));
-	printf("%ld\n",sizeof(req));
-	printf("%ld\n",sizeof(struct node));
+	struct node a;
+	//printf("buff size is :%ld\n",sizeof(a.link));
+	//printf("%ld\n",sizeof(req));
+	//printf("%ld\n",sizeof(struct node));
 
 	int i = 0,j,total_buffer_size=0;
 	void *buffer;
-	int *q;
+	int *q,x;
 	struct node *p,*ptr,*ptr1;
 	for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
 		total_buffer_size=total_buffer_size + req[i].size * req[i].count;
-	printf("%d\n",total_buffer_size);
+	//printf("%d\n",total_buffer_size);
 //	return;
-	p=malloc(total_buffer_size);
+	p=(struct node *)malloc(total_buffer_size);
 	printf("%p\n",p);
 	for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
 	{
 		for (j = 0; j < req[i].count; j++)
 			{
 				q=(int *)p;
-				printf("hello\n");
+				printf("%p\n",q);
+				//printf("hello\n");
 				p->flag=0;
 				p->size=req[i].size;
+				x=sizeof(struct node );
+
 				printf("%ld\n",sizeof(struct node));
-				p->buff=q+sizeof(struct node);
+				p->buff=q + x;
 				//return;
 				printf("%p\n",p->buff);
-				//return;
+				//printf("%d\n",(p->buff)- p);
+				return;
 				p->link=NULL;
 				if(root[i]==NULL)
 					root[i]=p;
