@@ -42,15 +42,15 @@ void append(void)
 				root[i]= p;
 			else
 			{
-
+				//printf("hai \n");
 				ptr1=root[i];
-			ptr=root[i]->link;
-			while(ptr!=NULL)
-			{
-				ptr1=ptr;
-				ptr=ptr->link;
-			}
-			ptr1->link=p;
+				ptr=root[i]->link;
+				while(ptr!=NULL)
+				{
+					ptr1=ptr;
+					ptr=ptr->link;
+				}
+				ptr1->link=p;
 			}
 		}
 	}
@@ -79,7 +79,7 @@ void *my_malloc(int size)
 	{
 	if(size <=128)
 		p=root[0];
-	else if (size >((req[i].size)/2) && size <(req[i].size) )
+	else if (size >(req[i-1].size)&& size <=(req[i].size) )
 			p=root[i];
 	}
 
@@ -127,12 +127,15 @@ for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
 	{
 		int k=1;
 		p=root[i];
+		printf("%d--->",req[i].size);
 		while(p!=NULL)
 		{
 		if(p->flag==0)
-			printf("block%d is free in %d buffer \n",k,bytes);
+			printf("FREE      \t");
+			//printf("block%d is free in %d buffer \n",k,bytes);
 		else
-			printf("block%d is allocated in %d buffer \n",k,bytes);
+			printf("allocated  \t");
+			//printf("block%d is allocated in %d buffer \n",k,bytes);
 		p=p->link;
 		k=k+1;
 	}
