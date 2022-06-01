@@ -7,6 +7,8 @@ struct mem_req
 	int count;
 };
 
+int c[5]={0},cf[5]={0};
+
 struct mem_req req[] = {
 	{128, 10},
 	{256, 5},
@@ -22,7 +24,32 @@ struct node
 	struct node *link;
 };
 
-struct node *HL[5];
+struct mem_pool
+{
+	int total_available;
+	int free;
+	int allocation;
+	int total_malloc_called;
+	int total_free_called;
+	int total_misses;
+	struct node *l;
+};
+
+struct mem_pool HL[4];
+
+void initialization()
+{
+	int i;
+	for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
+	{
+		HL[i].total_available=req[i].count;
+		HL[i].free=req[i].count;
+		HL[i].allocation=0;
+		HL[i].total_malloc_called=0;
+		HL[i].total_free_called=0;
+		HL[i].total_misses=0;
+	}
+}
 
 int get_memory_requirements()
 {
@@ -36,12 +63,12 @@ int get_memory_requirements()
 int add_node_to_free_pool(struct node *p1,int j1)
 {
 	struct node *ptr,*ptr1;
-		if(HL[j1]==NULL)
-			HL[j1]=p1;
+		if(HL[j1].l==NULL)
+			HL[j1].l=p1;
 		else
 		{
-			ptr1=HL[j1];
-			ptr=HL[j1]->link;
+			ptr1=HL[j1].l;
+			ptr=(HL[j1].l)->link;
 			while( ptr!=NULL)
 			{
 			ptr1=ptr;
@@ -59,8 +86,7 @@ void * init_pool_by_size(char *mem_pool, int size, int count,int j)
 	struct node *np;
 	int k=0;
 	printf("%d.%s-%s ->size :%d, count :%d\n", __LINE__, __FILE__, __FUNCTION__, size, count);
-
-	for (k = 0; k < count; k++)
+		for (k = 0; k < count; k++)
 	{
 		np = (struct node *)p;
 		np->flag = 0;
@@ -92,52 +118,88 @@ void init_free_pool(void)
 	}
 }
 
+void count(int i)
+{
+	HL[i].total_available=HL[i].total_available - 1;
+	HL[i].free = HL[i].free - 1;
+	HL[i].allocation = HL[i].allocation + 1;
+	HL[i].total_malloc_called=HL[i].total_malloc_called + 1;
+}
+
+void count_free(int i)
+{
+	HL[i].free=HL[i].free +1 ;
+	HL[i].total_free_called=HL[i].total_free_called + 1;
+	HL[i].total_available=HL[i].total_available + 1;
+	HL[i].allocation = HL[i].allocation - 1;
+
+}
+
+
 void *my_malloc(int size)
 {
 	struct node *p;
-	int i;
+	int i,count_nodes=0;
 	for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
 	{
 	if(size <=128)
-		p=HL[0];
-	else if (size >(req[i-1].size)&& size <=(req[i].size) )
-			p=HL[i];
+	{
+		p=HL[0].l;
+		break;
 	}
 
+	else if (size >(req[i-1].size)&& size <=(req[i].size) )
+	{
+		p=HL[i].l;
+		break;
+	}
+	}
 	if(size >1024)
 	{
 		printf("requested more than available\n");
 		return NULL;
 	}
-	while(p!=NULL || p!=HL[i+1])
+	while(p!=NULL )
 	{
 		if(p->flag==0)
 		{
+			count(i);
 			p->flag=1;
 			return((void *)p->buff);
 		}
+		count_nodes=count_nodes+1;
+
 		p=p->link;
+
 	}
+	if(count_nodes==req[i].count)
+		HL[i].total_misses=HL[i].total_misses+1;
+
 }
 
 void my_free(void *t)
 {
 	int i=0;
 	struct node *p;
-			p=HL[i];
-			while(p!=NULL)
+	for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
+	{
+		p=HL[i].l;
+		while(p!=NULL)
+		{
+			if(t==p->buff)
 			{
-				if(t==p->buff)
+				if(p->flag==1)
 				{
-					if(p->flag==1)
-					{
+					count_free(i);
 					p->flag=0;
 					return;
-					}
 				}
-				p=p->link;
 			}
+				p=p->link;
+		}
+   }
 }
+
 void who_is_free()
 {
 struct node *p;
@@ -145,7 +207,7 @@ int i,bytes=128;
 for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
 	{
 		int k=1;
-		p=HL[i];
+		p=HL[i].l;
 		printf("%d--->",req[i].size);
 
 		while( p!=NULL)
@@ -162,26 +224,50 @@ for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
 	}
 }
 
+void count_check()
+{
+	int i;
+
+	for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
+	{
+		printf("%d--->",req[i].size);
+		printf("total avaialable :%d \t",HL[i].total_available);
+		printf("free :%d \t",HL[i].free);
+		printf("allocated ; %d \t",HL[i].allocation);
+		printf("total_malloc _called :%d \t",HL[i].total_malloc_called);
+		printf("total_free_called :%d \t",HL[i].total_free_called);
+		printf("total misses : %d \t",HL[i].total_misses );
+		printf("\n");
+	}
+}
+
+
 void test1()
 {
 	//who_is_free();
 //	return;
-	char *a1,*a2,*a3,*a4=NULL;
-	a1=my_malloc(100);
-	a2=my_malloc(150);
-	a3=my_malloc(300);
-	a4=my_malloc(600);
+	char *a1,*a2,*a3,*a4,*a5,*a6,*a7=NULL;
+	a1=my_malloc(150);
+	a2=my_malloc(180);
+	a3=my_malloc(200);
+	a4=my_malloc(220);
+	//who_is_free();
+	//count_check();
+	//return;
+	//my_free(a2);
+	//who_is_free();
+	//count_check();
+	//return;
+	a5=my_malloc(240);
+	//who_is_free();
+	//my_free(a1);
+//	who_is_free();
+	a6=my_malloc(230);
+	a7=my_malloc(210);
+	//my_free(a3);
+	//my_free(a4);
 	who_is_free();
-	return;
-	my_free(a2);
-	who_is_free();
-	a4=my_malloc(100);
-	who_is_free();
-	my_free(a1);
-	who_is_free();
-	a1=my_malloc(120);
-	a2=my_malloc(100);
-	who_is_free();
+	count_check();
 	return;
 }
 
@@ -191,27 +277,21 @@ void display()
 	int i=0;
 	for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
 	{
-		p=HL[i];
-		printf("hash list :%p\n",HL[i]);
-		while(p!=NULL)
-		{
-		//	printf("%d\n",p->flag);
+	//	p=HL[i].l;
+	//	printf("hash list :%p\n",HL[i].l);
+	//	while(p!=NULL)
+	//	{
+			printf("%p\n",HL[i].l);
 		//	printf("%d\n",p->size);
-		//	printf("%p\n",p->buff);
-			p=p->link;
-		}
 	}
 }
 
 int main()
 {
 	init_free_pool();
-	//initialization();
-	//int k;
-	//for (k=0;k<10;k++)
-	//append();
+	initialization();
 	test1();
-	//display();
+	
 }
 
 
