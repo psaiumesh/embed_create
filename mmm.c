@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct mem_req
 {
@@ -20,6 +21,8 @@ struct node
 	int size;
 	void *buff;
 	struct node *link;
+	//char head[5];
+	//char tail[5];
 };
 
 struct mem_pool
@@ -54,7 +57,7 @@ int get_memory_requirements()
 	int total_buffer_size = 0;
 	int i = 0;
 	for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
-		total_buffer_size = total_buffer_size + (req[i].size * req[i].count);
+		total_buffer_size = total_buffer_size + ((req[i].size+sizeof("UME08")+sizeof("SH06")) * req[i].count);
 	return total_buffer_size;
 }
 
@@ -83,18 +86,22 @@ void * init_pool_by_size(char *mem_pool, int size, int count,int j)
 	char *p = mem_pool;
 	struct node *np;
 	int k=0;
-	printf("%d.%s-%s ->size :%d, count :%d\n", __LINE__, __FILE__, __FUNCTION__, size, count);
-		for (k = 0; k < count; k++)
+	//printf("%d.%s-%s ->size :%d, count :%d\n", __LINE__, __FILE__, __FUNCTION__, size, count);
+	for (k = 0; k < count; k++)
 	{
 		np = (struct node *)p;
 		np->flag = 0;
 		np->size = size;
-		np->buff = p + sizeof(struct node);
+		np->buff = p + (sizeof(struct node));
 		np->link = NULL;
+		//strcpy(np->head,"UME08");
+		//np=np+size;
+		//strcpy(np->tail,"SH06");
+
 
 		add_node_to_free_pool(np,j);
 		
-		p = p + (sizeof(struct node) + size);
+		p = p + (sizeof(struct node) + size + sizeof("UME08")+sizeof("SH06"));
 	}
 	return (void *)p;
 }
@@ -105,7 +112,7 @@ void init_free_pool(void)
 	void *mem_chunk, *mc;
 
 	mem_size = get_memory_requirements();
-	printf("%d.%s-%s ->mem_size :%d\n", __LINE__, __FILE__, __FUNCTION__, mem_size);
+	//printf("%d.%s-%s ->mem_size :%d\n", __LINE__, __FILE__, __FUNCTION__, mem_size);
 
 	mem_chunk = (struct node *)malloc(mem_size);
 
@@ -118,7 +125,6 @@ void init_free_pool(void)
 
 void count(int i)
 {
-	HL[i].total_available=HL[i].total_available - 1;
 	HL[i].free = HL[i].free - 1;
 	HL[i].allocation = HL[i].allocation + 1;
 	HL[i].total_malloc_called=HL[i].total_malloc_called + 1;
@@ -128,11 +134,16 @@ void count_free(int i)
 {
 	HL[i].free=HL[i].free +1 ;
 	HL[i].total_free_called=HL[i].total_free_called + 1;
-	HL[i].total_available=HL[i].total_available + 1;
 	HL[i].allocation = HL[i].allocation - 1;
 
 }
 
+void buffer_initialization(char *q,int i)
+{
+	strcpy(q,"UME08");
+	q = q + req[i].size;
+	strcpy(q,"SH06");
+}
 
 void *my_malloc(int size)
 {
@@ -163,6 +174,7 @@ void *my_malloc(int size)
 		{
 			count(i);
 			p->flag=1;
+			buffer_initialization(p->buff,i);
 			return((void *)p->buff);
 		}
 		count_nodes=count_nodes+1;
@@ -192,6 +204,8 @@ void my_free(void *t)
 					p->flag=0;
 					return;
 				}
+				printf("you are trying to free which is already free \n");
+				return;
 			}
 				p=p->link;
 		}
@@ -206,14 +220,15 @@ for (i = 0; i < sizeof(req)/sizeof(struct mem_req); i++)
 	{
 		int k=1;
 		p=HL[i].l;
-		printf("%d--->",req[i].size);
+		printf("%5d--->",req[i].size);
 
 		while( p!=NULL)
 		{
-			if(p->flag==0)
-				printf("block%d is free in %d buffer \n",k,bytes);
-			else
-				printf("block%d is allocated in %d buffer \n",k,bytes);
+			printf("%5s",(p->flag) ? "A" : "F");
+			//if(p->flag==0)
+			//	printf("block%d is free in %d buffer \n",k,bytes);
+			//else
+			//	printf("block%d is allocated in %d buffer \n",k,bytes);
 			p=p->link;
 			k=k+1;
 		}
@@ -252,10 +267,11 @@ void test1()
 	//who_is_free();
 	//count_check();
 	//return;
+	my_free(a2);
 	//my_free(a2);
-	//who_is_free();
-	//count_check();
-	//return;
+	who_is_free();
+	count_check();
+	return;
 	a5=my_malloc(240);
 	//who_is_free();
 	//my_free(a1);
